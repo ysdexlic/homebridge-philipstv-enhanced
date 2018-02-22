@@ -1,4 +1,4 @@
-# homebridge-philipstv
+# homebridge-philipstv-X
 Homebridge module for Philips TV (with JointSpace enabled)
 
 # Description
@@ -12,6 +12,7 @@ Main difference is:
 
 # Update
 Added power-on function for models after 2014 (thanks to uronito - https://github.com/uronito )
+
 Added support for 2016 philips models
 
 # Installation
