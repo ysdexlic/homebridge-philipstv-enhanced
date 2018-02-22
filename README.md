@@ -18,7 +18,7 @@ Added support for 2016 philips models
 # Installation
 
 1. Install homebridge using: npm install -g homebridge
-2. Install this plugin using: npm install -g homebridge-philipstv
+2. Install this plugin using: npm install -g homebridge-philipstv-x
 3. Update your configuration file. See the sample below. If you have a 2016 model you have to generate some access-credentials before (see below)
 
 # Configuration
