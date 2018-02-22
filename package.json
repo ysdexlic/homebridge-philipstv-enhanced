@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-philipstv-X",
+  "name": "homebridge-philipstv-x",
   "version": "0.4.0",
   "description": "Homebridge module for the Philips TV (with JointSpace enabled) and ready for 2016 models",
   "main": "index.js",
@@ -19,7 +19,7 @@
     "homebridge",
     "philipstv",
     "JointSpace",
-	"homebridge-plugin"
+    "homebridge-plugin"
   ],
   "engines": {
     "node": ">=0.12.0",
@@ -28,7 +28,7 @@
   "author": "skrollme <github@skroll.me>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/skrollme/homebridge-philipstv/issues"
+    "url": "https://github.com/skrollme/homebridge-philipstv-x/issues"
   },
-  "homepage": "https://github.com/skrollme/homebridge-philipstv#readme"
+  "homepage": "https://github.com/skrollme/homebridge-philipstv-x#readme"
 }
