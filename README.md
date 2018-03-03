@@ -15,6 +15,8 @@ Added power-on function for models after 2014 (thanks to uronito - https://githu
 
 Added support for 2016 philips models
 
+Added 'has_ambilight' (true/false) switch. Defaults to 'false'
+
 # Installation
 
 1. Install homebridge using: npm install -g homebridge
@@ -57,6 +59,7 @@ Example accessory config for models **from 2016** (needs to be added to the home
  		"ip_address": "10.0.1.23",
  		"poll_status_interval": "60",
 		"model_year": 2016,
+		"has_ambilight": true,
 		"username": "deadbeef0815",
 		"password": "deadbeef0815deadbeef0815deadbeef0815deadbeef0815deadbeef0815",
  	}

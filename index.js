@@ -22,6 +22,7 @@ function HttpStatusAccessory(log, config) {
 	this.wol_url = config["wol_url"] || "";
 	this.model_year_nr = parseInt(this.model_year);
 	this.set_attempt = 0;
+    this.has_ambilight = config["has_ambilight"] || false;
 
 	// CREDENTIALS FOR API
 	this.username = config["username"] || "";
@@ -117,22 +118,24 @@ function HttpStatusAccessory(log, config) {
 			}
 		});
 
-		var statusemitter_ambilight = pollingtoevent(function(done) {
-			that.getAmbilightState(function(error, response) {
-				done(error, response, that.set_attempt);
-			}, "statuspoll");
-		}, {
-			longpolling: true,
-			interval: that.interval * 1000,
-			longpollEventName: "statuspoll_ambilight"
-		});
+		if(this.has_ambilight) {
+            var statusemitter_ambilight = pollingtoevent(function(done) {
+                that.getAmbilightState(function(error, response) {
+                    done(error, response, that.set_attempt);
+                }, "statuspoll");
+            }, {
+                longpolling: true,
+                interval: that.interval * 1000,
+                longpollEventName: "statuspoll_ambilight"
+            });
 
-		statusemitter_ambilight.on("statuspoll_ambilight", function(data) {
-			that.state_ambilight = data;
-			if (that.ambilightService) {
-				that.ambilightService.getCharacteristic(Characteristic.On).setValue(that.state_ambilight, null, "statuspoll");
-			}
-		});
+            statusemitter_ambilight.on("statuspoll_ambilight", function(data) {
+                that.state_ambilight = data;
+                if (that.ambilightService) {
+                    that.ambilightService.getCharacteristic(Characteristic.On).setValue(that.state_ambilight, null, "statuspoll");
+                }
+            });
+		}
 	}
 }
 
@@ -500,13 +503,18 @@ HttpStatusAccessory.prototype = {
 			.on('get', this.getPowerState.bind(this))
 			.on('set', this.setPowerState.bind(this));
 
-		// AMBILIGHT
-		this.ambilightService = new Service.Lightbulb(this.name + " Ambilight");
-		this.ambilightService
-			.getCharacteristic(Characteristic.On)
-			.on('get', this.getAmbilightState.bind(this))
-			.on('set', this.setAmbilightState.bind(this));
 
-		return [informationService, this.switchService, this.ambilightService];
+		if (this.has_ambilight) {
+            // AMBILIGHT
+            this.ambilightService = new Service.Lightbulb(this.name + " Ambilight");
+            this.ambilightService
+                .getCharacteristic(Characteristic.On)
+                .on('get', this.getAmbilightState.bind(this))
+                .on('set', this.setAmbilightState.bind(this));
+
+            return [informationService, this.switchService, this.ambilightService];
+		} else {
+            return [informationService, this.switchService];
+		}
 	}
 };
