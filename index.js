@@ -386,7 +386,7 @@ HttpStatusAccessory.prototype = {
                     try {
                         responseBodyParsed = JSON.parse(responseBody);
                         if (responseBodyParsed && responseBodyParsed.powerstate) {
-                        	tResp = (responseBodyParsed.power == "On") ? 1 : 0;
+                        	tResp = (responseBodyParsed.powerstate == "On") ? 1 : 0;
 						} else {
 		                    that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
 						}
