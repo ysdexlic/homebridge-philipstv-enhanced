@@ -74,9 +74,7 @@ You can then add username and password key in your homebridge config, example:
  ```
 # Todo
 
-We should auto detect TV capacity (http/https) and API version by requesting
-http://tvip:1925/1/system
-https://tvip:1925/1/system
+We should auto detect TV capacity (http/https) and API version by requesting http://tvip:1925/1/system and https://tvip:1926/1/system
 
 a 2018 TV will answer to /1/system and will report the API version is 6.1
 
