@@ -137,7 +137,7 @@ function HttpStatusAccessory(log, config) {
         statusemitter.on("statuspoll_volumeLevel", function(data) {
             that.state_volumeLevel = data;
             if (that.VolumeService) {
-                that.VolumeService.getCharacteristic(Characteristic.Mute).setValue(that.state_volumeLevel, null, "statuspoll");
+                that.VolumeService.getCharacteristic(Characteristic.Volume).setValue(that.state_volumeLevel, null, "statuspoll");
             }
         });
 
@@ -315,8 +315,8 @@ HttpStatusAccessory.prototype = {
 						if (error) {
 							that.state_power = false;
 							that.log("setPowerStateLoop - ERROR: %s", error);
-							if (that.tvService) {
-								that.tvService.getCharacteristic(Characteristic.Active).setValue(that.state_power, null, "statuspoll");
+							if (that.powerService) {
+								that.powerService.getCharacteristic(Characteristic.On).setValue(that.state_power, null, "statuspoll");
 							}
 						}
 					});
@@ -331,8 +331,8 @@ HttpStatusAccessory.prototype = {
                     that.state_power = false;
                     that.log("setPowerStateLoop - ERROR: %s", error);
                 }
-                if (that.tvService) {
-                    that.tvService.getCharacteristic(Characteristic.Active).setValue(that.state_power, null, "statuspoll");
+                if (that.powerService) {
+                    that.powerService.getCharacteristic(Characteristic.On).setValue(that.state_power, null, "statuspoll");
                 }
                 if (that.ambilightService) {
                     that.state_ambilight = false;
@@ -694,7 +694,7 @@ HttpStatusAccessory.prototype = {
                 that.state_volumeLevel = false;
                 that.log("setVolumeState - ERROR: %s", error);
                 if (that.volumeService) {
-                    that.volumeService.getCharacteristic(Characteristic.Mute).setValue(that.state_volumeLevel, null, "statuspoll");
+                    that.volumeService.getCharacteristic(Characteristic.Volume).setValue(that.state_volumeLevel, null, "statuspoll");
                 }
             }
             callback(error, that.state_volumeLevel);
@@ -813,24 +813,14 @@ HttpStatusAccessory.prototype = {
             .setCharacteristic(Characteristic.Model, this.model_year);
 
         // POWER
-        this.tvService = new Service.Television(this.name + " Power", '0a');
-        this.tvService.setCharacteristic(Characteristic.ConfiguredName, this.name + " Power");
-        this.tvService
-            .setCharacteristic(
-                Characteristic.SleepDiscoveryMode,
-                Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
-            );
-        this.tvService
-            .getCharacteristic(Characteristic.ActiveIdentifier)
-            .on('set', this.setActiveIdentifier.bind(this))
-            .on('get', this.getActiveIdentifier.bind(this));
-        this.tvService
-            .getCharacteristic(Characteristic.Active)
+        this.powerService = new Service.Switch(this.name + " Power", '0a');
+        this.powerService
+            .getCharacteristic(Characteristic.On)
             .on('get', this.getPowerState.bind(this))
             .on('set', this.setPowerState.bind(this));
 
         // Volume
-        this.volumeService = new Service.TelevisionSpeaker(this.name + " Volume", '0b');
+        this.volumeService = new Service.Speaker(this.name + " Volume", '0b');
         this.volumeService.setCharacteristic(Characteristic.Name, this.name + " Volume")
         this.volumeService
             .getCharacteristic(Characteristic.Mute)
@@ -855,9 +845,9 @@ HttpStatusAccessory.prototype = {
             	.on('get', this.getAmbilightBrightness.bind(this))
             	.on('set', this.setAmbilightBrightness.bind(this));
 
-            return [informationService, this.tvService, this.volumeService, this.ambilightService];
+            return [informationService, this.powerService, this.volumeService, this.ambilightService];
         } else {
-            return [informationService, this.tvService, this.volumeService];
+            return [informationService, this.powerService, this.volumeService];
         }
     }
 };
