@@ -120,7 +120,7 @@ function HttpStatusAccessory(log, config) {
         statusemitter.on("statuspoll_volume", function(data) {
             that.state_volume = data;
             if (that.VolumeService) {
-                that.VolumeService.getCharacteristic(Characteristic.On).setValue(that.state_volume, null, "statuspoll");
+                that.VolumeService.getCharacteristic(Characteristic.Mute).setValue(that.state_volume, null, "statuspoll");
             }
         });
 
@@ -137,7 +137,7 @@ function HttpStatusAccessory(log, config) {
         statusemitter.on("statuspoll_volumeLevel", function(data) {
             that.state_volumeLevel = data;
             if (that.VolumeService) {
-                that.VolumeService.getCharacteristic(Characteristic.Brightness).setValue(that.state_volumeLevel, null, "statuspoll");
+                that.VolumeService.getCharacteristic(Characteristic.Mute).setValue(that.state_volumeLevel, null, "statuspoll");
             }
         });
 
@@ -340,7 +340,7 @@ HttpStatusAccessory.prototype = {
                 }
                  if (that.volumeService) {
                     that.state_volume = false;
-                    that.volumeService.getCharacteristic(Characteristic.On).setValue(that.state_volume, null, "statuspoll");
+                    that.volumeService.getCharacteristic(Characteristic.Mute).setValue(that.state_volume, null, "statuspoll");
                 }
                 callback(error, that.state_power);
             }.bind(this));
@@ -641,7 +641,7 @@ HttpStatusAccessory.prototype = {
                 that.state_volume = false;
                 that.log("setVolumeState - ERROR: %s", error);
                 if (that.volumeService) {
-                    that.volumeService.getCharacteristic(Characteristic.On).setValue(that.state_volume, null, "statuspoll");
+                    that.volumeService.getCharacteristic(Characteristic.Mute).setValue(that.state_volume, null, "statuspoll");
                 }
             }
             callback(error, that.state_volume);
@@ -694,7 +694,7 @@ HttpStatusAccessory.prototype = {
                 that.state_volumeLevel = false;
                 that.log("setVolumeState - ERROR: %s", error);
                 if (that.volumeService) {
-                    that.volumeService.getCharacteristic(Characteristic.On).setValue(that.state_volumeLevel, null, "statuspoll");
+                    that.volumeService.getCharacteristic(Characteristic.Mute).setValue(that.state_volumeLevel, null, "statuspoll");
                 }
             }
             callback(error, that.state_volumeLevel);
@@ -795,6 +795,14 @@ HttpStatusAccessory.prototype = {
         callback(); // success
     },
 
+    getActiveIdentifier: function(callback) {
+        callback(null, 1);
+    },
+
+    setActiveIdentifier: function(identifier, callback){
+        callback(null, identifier);
+    },
+
     getServices: function() {
         var that = this;
 
@@ -806,30 +814,31 @@ HttpStatusAccessory.prototype = {
 
         // POWER
         this.tvService = new Service.Television(this.name + " Power", '0a');
+        this.tvService.setCharacteristic(Characteristic.ConfiguredName, this.name + " Power");
         this.tvService
-            .setCharacteristic(
-                Characteristic.ConfiguredName,
-                this.name
-            )
             .setCharacteristic(
                 Characteristic.SleepDiscoveryMode,
                 Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
-            )
-            .setCharacteristic(Characteristic.ActiveIdentifier, 0);
+            );
+        this.tvService
+            .getCharacteristic(Characteristic.ActiveIdentifier)
+            .on('set', this.setActiveIdentifier.bind(this))
+            .on('get', this.getActiveIdentifier.bind(this));
         this.tvService
             .getCharacteristic(Characteristic.Active)
             .on('get', this.getPowerState.bind(this))
             .on('set', this.setPowerState.bind(this));
 
         // Volume
-        this.volumeService = new Service.Speaker(this.name + " Volume", '0b');
+        this.volumeService = new Service.TelevisionSpeaker(this.name + " Volume", '0b');
+        this.volumeService.setCharacteristic(Characteristic.Name, this.name + " Volume")
         this.volumeService
-            .getCharacteristic(Characteristic.On)
+            .getCharacteristic(Characteristic.Mute)
             .on('get', this.getVolumeState.bind(this))
             .on('set', this.setVolumeState.bind(this));
 
         this.volumeService
-            .getCharacteristic(Characteristic.Brightness)
+            .getCharacteristic(Characteristic.Volume)
             .on('get', this.getVolumeLevel.bind(this))
             .on('set', this.setVolumeLevel.bind(this));
 
