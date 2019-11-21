@@ -267,8 +267,8 @@ HttpStatusAccessory.prototype = {
 						if (error) {
 							that.state_power = false;
 							that.log("setPowerStateLoop - ERROR: %s", error);
-							if (that.tvService) {
-								that.tvService.getCharacteristic(Characteristic.Active).setValue(that.state_power, null, "statuspoll");
+							if (that.powerService) {
+								that.powerService.getCharacteristic(Characteristic.On).setValue(that.state_power, null, "statuspoll");
 							}
 						} else if (that.ambilightService) {
                             that.state_ambilight = true;
@@ -286,8 +286,8 @@ HttpStatusAccessory.prototype = {
                     that.state_power = false;
                     that.log("setPowerStateLoop - ERROR: %s", error);
                 }
-                if (that.tvService) {
-                    that.tvService.getCharacteristic(Characteristic.Active).setValue(that.state_power, null, "statuspoll");
+                if (that.powerService) {
+                    that.powerService.getCharacteristic(Characteristic.On).setValue(that.state_power, null, "statuspoll");
                 }
                 if (that.ambilightService) {
                     that.state_ambilight = false;
@@ -561,25 +561,12 @@ HttpStatusAccessory.prototype = {
             .setCharacteristic(Characteristic.Manufacturer, 'Philips')
             .setCharacteristic(Characteristic.Model, this.model_year);
 
-        // POWER / TV
-        this.tvService = new Service.Television(this.name, '0a');
-        this.tvService.setCharacteristic(Characteristic.ConfiguredName, this.name);
-        this.tvService
-            .setCharacteristic(
-                Characteristic.SleepDiscoveryMode,
-                Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
-            );
-        this.tvService
-            .getCharacteristic(Characteristic.Active)
+        // POWER
+        this.powerService = new Service.Switch(this.name, '0a');
+        this.powerService
+            .getCharacteristic(Characteristic.On)
             .on('get', this.getPowerState.bind(this))
             .on('set', this.setPowerState.bind(this));
-        
-        this.tvService.setCharacteristic(Characteristic.ActiveIdentifier, 0);
-        this.tvService
-            .getCharacteristic(Characteristic.ActiveIdentifier)
-            .on('set', this.setActiveIdentifier.bind(this))
-            .on('get', this.getActiveIdentifier.bind(this));
-
 
         if (this.has_ambilight) {
             // AMBILIGHT
@@ -594,9 +581,9 @@ HttpStatusAccessory.prototype = {
             	.on('get', this.getAmbilightBrightness.bind(this))
             	.on('set', this.setAmbilightBrightness.bind(this));
 
-            return [informationService, this.tvService, this.ambilightService];
+            return [informationService, this.powerService, this.ambilightService];
         } else {
-            return [informationService, this.tvService];
+            return [informationService, this.powerService];
         }
     }
 };
