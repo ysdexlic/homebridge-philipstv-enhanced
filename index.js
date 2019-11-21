@@ -30,24 +30,12 @@ function HttpStatusAccessory(log, config) {
     this.password = config["password"] || "";
 
     // CHOOSING API VERSION BY MODEL/YEAR
-    switch (this.model_year_nr) {
-        case 2018:
-            this.api_version = 6;
-            break;
-        case 2017:
-            this.api_version = 6;
-            break;
-        case 2016:
-            this.api_version = 6;
-            break;
-        case 2015:
-            this.api_version = 5;
-            break;
-        case 2014:
-            this.api_version = 5;
-            break;
-        default:
-            this.api_version = 1;
+    if (this.model_year_nr >= 2016) {
+        this.api_version = 6;
+    } else if (this.model_year_nr >= 2014) {
+        this.api_version = 5;
+    } else {
+        this.api_version = 1;
     }
 
     // CONNECTION SETTINGS
@@ -67,12 +55,9 @@ function HttpStatusAccessory(log, config) {
     // Define URL & JSON Payload for Actions
 
     // POWER
-    this.power_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/powerstate";
-    this.power_on_body = JSON.stringify({
-        "powerstate": "On"
-    });
-    this.power_off_body = JSON.stringify({
-        "powerstate": "Standby"
+    this.power_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/input/key";
+    this.toggle_power_body = JSON.stringify({
+        "key": "Standby"
     });
 
     // Volume
@@ -315,7 +300,7 @@ HttpStatusAccessory.prototype = {
                 this.log("Power On is not possible for model_year before 2014.");
                 callback(new Error("Power On is not possible for model_year before 2014."));
             }
-            body = this.power_on_body;
+            body = this.toggle_power_body;
             this.log("setPowerState - Will power on");
 			// If Mac Addr for WOL is set
 			if (this.wol_url) {
@@ -330,15 +315,15 @@ HttpStatusAccessory.prototype = {
 						if (error) {
 							that.state_power = false;
 							that.log("setPowerStateLoop - ERROR: %s", error);
-							if (that.switchService) {
-								that.switchService.getCharacteristic(Characteristic.On).setValue(that.state_power, null, "statuspoll");
+							if (that.tvService) {
+								that.tvService.getCharacteristic(Characteristic.Active).setValue(that.state_power, null, "statuspoll");
 							}
 						}
 					});
 				}.bind(this));
 			} 
         } else {
-            body = this.power_off_body;
+            body = this.toggle_power_body;
             this.log("setPowerState - Will power off");
             that.setPowerStateLoop(0, url, body, powerState, function(error, state_power) {
                 that.state_power = state_power;
@@ -346,8 +331,8 @@ HttpStatusAccessory.prototype = {
                     that.state_power = false;
                     that.log("setPowerStateLoop - ERROR: %s", error);
                 }
-                if (that.switchService) {
-                    that.switchService.getCharacteristic(Characteristic.On).setValue(that.state_power, null, "statuspoll");
+                if (that.tvService) {
+                    that.tvService.getCharacteristic(Characteristic.Active).setValue(that.state_power, null, "statuspoll");
                 }
                 if (that.ambilightService) {
                     that.state_ambilight = false;
@@ -805,118 +790,6 @@ HttpStatusAccessory.prototype = {
         }.bind(this));
     },
 
-    /// Next input
-    setNextInput: function(inputState, callback, context) {
-        this.log.debug("Entering %s with context: %s and target value: %s", arguments.callee.name, context, inputState);
-
-        url = this.input_url;
-        body = JSON.stringify({"key": "Source"});
-        this.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
-            if (error) {
-                this.log('setNextInput - error: ', error.message);
-            } else {
-                	this.log('Source - succeeded - current state: %s', inputState);
-
-					setTimeout(function () {
-					body = JSON.stringify({"key": "CursorDown"});
-
-					this.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
-						if (error) {
-           				     this.log('setNextInput - error: ', error.message);
-						} else {
-								this.log('Down - succeeded - current state: %s', inputState);
-								setTimeout(function () {
-								body = JSON.stringify({"key": "CursorRight"});
-
-								this.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
-									if (error) {
-               							 this.log('setNextInput - error: ', error.message);
-									} else {
-											this.log('Right - succeeded - current state: %s', inputState);
-											setTimeout(function() {
-												body = JSON.stringify({"key": "Confirm"});
-
-												this.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
-													if (error) {
-            										    this.log('setNextInput - error: ', error.message);
-													} else {
-															this.log.info("Source change completed");
-													}
-												}.bind(this));
-											}.bind(this), 500);
-									}
-								}.bind(this));
-
-							}.bind(this), 500);
-						}
-					}.bind(this));
-
-				}.bind(this), 500);
-            }
-        }.bind(this));
-        callback(null, null);
-    },
-
-    getNextInput: function(callback, context) {
-        callback(null, null);
-    },
-
-    /// Previous input
-    setPreviousInput: function(inputState, callback, context) {
-        this.log.debug("Entering %s with context: %s and target value: %s", arguments.callee.name, context, inputState);
-
-        url = this.input_url;
-        body = JSON.stringify({"key": "Source"});
-        this.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
-            if (error) {
-                this.log('setPreviousInput - error: ', error.message);
-            } else {
-                	this.log('Source - succeeded - current state: %s', inputState);
-
-					setTimeout(function () {
-					body = JSON.stringify({"key": "CursorDown"});
-
-					this.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
-						if (error) {
-			                this.log('setPreviousInput - error: ', error.message);
-						} else {
-								this.log('Down - succeeded - current state: %s', inputState);
-								setTimeout(function () {
-								body = JSON.stringify({"key": "CursorLeft"});
-
-								this.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
-									if (error) {
-						                this.log('setPreviousInput - error: ', error.message);
-									} else {
-											this.log('Right - succeeded - current state: %s', inputState);
-											setTimeout(function() {
-												body = JSON.stringify({"key": "Confirm"});
-												
-												this.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
-													if (error) {
-										                this.log('setPreviousInput - error: ', error.message);
-													} else {
-															this.log.info("Source change completed");
-													}
-												}.bind(this));
-											}.bind(this), 500);
-									}
-								}.bind(this));
-
-							}.bind(this), 500);
-						}
-					}.bind(this));
-
-				}.bind(this), 500);
-            }
-        }.bind(this));
-        callback(null, null);
-    },
-
-    getPreviousInput: function(callback, context) {
-        callback(null, null);
-    },
-
     identify: function(callback) {
         this.log("Identify requested!");
         callback(); // success
@@ -929,17 +802,27 @@ HttpStatusAccessory.prototype = {
         informationService
             .setCharacteristic(Characteristic.Name, this.name)
             .setCharacteristic(Characteristic.Manufacturer, 'Philips')
-            .setCharacteristic(Characteristic.Model, "Year " + this.model_year);
+            .setCharacteristic(Characteristic.Model, this.model_year);
 
         // POWER
-        this.switchService = new Service.Switch(this.name + " Power", '0a');
-        this.switchService
-            .getCharacteristic(Characteristic.On)
+        this.tvService = new Service.Television(this.name + " Power", '0a');
+        this.tvService
+            .setCharacteristic(
+                Characteristic.ConfiguredName,
+                this.name
+            )
+            .setCharacteristic(
+                Characteristic.SleepDiscoveryMode,
+                Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
+            )
+            .setCharacteristic(Characteristic.ActiveIdentifier, 0);
+        this.tvService
+            .getCharacteristic(Characteristic.Active)
             .on('get', this.getPowerState.bind(this))
             .on('set', this.setPowerState.bind(this));
 
         // Volume
-        this.volumeService = new Service.Lightbulb(this.name + " Volume", '0b');
+        this.volumeService = new Service.Speaker(this.name + " Volume", '0b');
         this.volumeService
             .getCharacteristic(Characteristic.On)
             .on('get', this.getVolumeState.bind(this))
@@ -949,20 +832,6 @@ HttpStatusAccessory.prototype = {
             .getCharacteristic(Characteristic.Brightness)
             .on('get', this.getVolumeLevel.bind(this))
             .on('set', this.setVolumeLevel.bind(this));
-
-        // Previous input
-        this.PreviousInputService = new Service.Switch(this.name + " Previous input", '0c');
-        this.PreviousInputService
-            .getCharacteristic(Characteristic.On)
-            .on('get', this.getPreviousInput.bind(this))
-            .on('set', this.setPreviousInput.bind(this));
-
-        // Next input
-        this.NextInputService = new Service.Switch(this.name + " Next input", '0d');
-        this.NextInputService
-            .getCharacteristic(Characteristic.On)
-            .on('get', this.getNextInput.bind(this))
-            .on('set', this.setNextInput.bind(this));
 
         if (this.has_ambilight) {
             // AMBILIGHT
@@ -977,9 +846,9 @@ HttpStatusAccessory.prototype = {
             	.on('get', this.getAmbilightBrightness.bind(this))
             	.on('set', this.setAmbilightBrightness.bind(this));
 
-            return [informationService, this.switchService, this.volumeService, this.NextInputService, this.PreviousInputService, this.ambilightService];
+            return [informationService, this.tvService, this.volumeService, this.ambilightService];
         } else {
-            return [informationService, this.switchService, this.NextInputService, this.PreviousInputService, this.volumeService];
+            return [informationService, this.tvService, this.volumeService];
         }
     }
 };
